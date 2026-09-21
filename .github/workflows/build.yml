@@ -12,7 +12,7 @@ jobs:
 
       - name: Compile
         run: |
-          cl /EHsc /D_WIN32_WINNT=0x0600 /I. injector.cpp /link kernel32.lib ntdll.lib /Fe:injector.exe
+          cl /EHsc /D_WIN32_WINNT=0x0600 /I. injector.cpp syscalls.c /link kernel32.lib ntdll.lib /Fe:injector.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
