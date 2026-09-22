@@ -14,7 +14,7 @@ jobs:
         run: |
           ml64 /c /Fo syscalls.asm.obj syscalls-asm.x64.asm
           cl /c /O2 /GS- /Gy /EHsc /D_WIN32_WINNT=0x0600 /I. injector.cpp syscalls.c
-          link /OUT:injector.exe injector.obj syscalls.obj syscalls.asm.obj kernel32.lib ntdll.lib /DYNAMICBASE /NXCOMPAT
+          link /OUT:injector.exe injector.obj syscalls.obj syscalls.asm.obj kernel32.lib user32.lib advapi32.lib ntdll.lib /DYNAMICBASE /NXCOMPAT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
