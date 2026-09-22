@@ -48,12 +48,10 @@ typedef struct _QN3_PEB {
     PQN3_PEB_LDR_DATA Ldr;
 } QN3_PEB, *PQN3_PEB;
 
-// Exposé publiquement (utilisé par les stubs ASM).
 EXTERN_C DWORD Qn3_ResolveSyscallId(DWORD Hash);
 EXTERN_C PVOID Qn3_ResolveSyscallStub(DWORD Hash);
 EXTERN_C PVOID Qn3_PickSyscallStub(DWORD Hash);
 
-// API interne (utilisée uniquement par syscalls.c).
 BOOL Qn3_BuildSyscallTable(void);
 
 typedef struct _UNICODE_STRING {
@@ -102,13 +100,14 @@ EXTERN_C NTSTATUS Qn3_NtWriteVirtualMemory(
 EXTERN_C NTSTATUS Qn3_NtProtectVirtualMemory(
     IN HANDLE, IN OUT PVOID*, IN OUT PSIZE_T, IN ULONG, OUT PULONG);
 
-EXTERN_C NTSTATUS Qn3_NtSuspendThread(IN HANDLE, OUT PULONG);
+EXTERN_C NTSTATUS Qn3_NtQueueApcThread(
+    IN HANDLE ThreadHandle,
+    IN PVOID ApcRoutine,
+    IN PVOID ApcArgument1,
+    IN PVOID ApcArgument2,
+    IN PVOID ApcArgument3);
 
-EXTERN_C NTSTATUS Qn3_NtResumeThread(IN HANDLE, IN OUT PULONG);
-
-EXTERN_C NTSTATUS Qn3_NtGetContextThread(IN HANDLE, IN OUT PCONTEXT);
-
-EXTERN_C NTSTATUS Qn3_NtSetContextThread(IN HANDLE, IN PCONTEXT);
+EXTERN_C NTSTATUS Qn3_NtAlertThread(IN HANDLE ThreadHandle);
 
 EXTERN_C NTSTATUS Qn3_NtClose(IN HANDLE);
 
