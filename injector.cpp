@@ -6,6 +6,7 @@
 #include "syscalls.h"
 
 #pragma comment(lib, "Advapi32.lib")
+#pragma comment(lib, "User32.lib")
 
 #define STR_MASK   0x5D
 #define BLOB_MASK  0x6B
