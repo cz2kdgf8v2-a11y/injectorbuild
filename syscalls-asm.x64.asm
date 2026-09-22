@@ -118,17 +118,17 @@ Qn3_NtProtectVirtualMemory PROC
     jmp  r11
 Qn3_NtProtectVirtualMemory ENDP
 
-Qn3_NtSuspendThread PROC
+Qn3_NtQueueApcThread PROC
     push rbx
     push rcx
     push rdx
     push r8
     push r9
     sub  rsp, 20h
-    mov  ecx, 0A8836621h
+    mov  ecx, 0BCAE3B8Dh
     call Qn3_PickSyscallStub
     mov  rbx, rax
-    mov  ecx, 0A8836621h
+    mov  ecx, 0BCAE3B8Dh
     call Qn3_ResolveSyscallId
     mov  r11, rbx
     add  rsp, 20h
@@ -139,19 +139,19 @@ Qn3_NtSuspendThread PROC
     pop  rbx
     mov  r10, rcx
     jmp  r11
-Qn3_NtSuspendThread ENDP
+Qn3_NtQueueApcThread ENDP
 
-Qn3_NtResumeThread PROC
+Qn3_NtAlertThread PROC
     push rbx
     push rcx
     push rdx
     push r8
     push r9
     sub  rsp, 20h
-    mov  ecx, 0A7009982h
+    mov  ecx, 0399EF53Eh
     call Qn3_PickSyscallStub
     mov  rbx, rax
-    mov  ecx, 0A7009982h
+    mov  ecx, 0399EF53Eh
     call Qn3_ResolveSyscallId
     mov  r11, rbx
     add  rsp, 20h
@@ -162,53 +162,7 @@ Qn3_NtResumeThread PROC
     pop  rbx
     mov  r10, rcx
     jmp  r11
-Qn3_NtResumeThread ENDP
-
-Qn3_NtGetContextThread PROC
-    push rbx
-    push rcx
-    push rdx
-    push r8
-    push r9
-    sub  rsp, 20h
-    mov  ecx, 02EAE6E6Dh
-    call Qn3_PickSyscallStub
-    mov  rbx, rax
-    mov  ecx, 02EAE6E6Dh
-    call Qn3_ResolveSyscallId
-    mov  r11, rbx
-    add  rsp, 20h
-    pop  r9
-    pop  r8
-    pop  rdx
-    pop  rcx
-    pop  rbx
-    mov  r10, rcx
-    jmp  r11
-Qn3_NtGetContextThread ENDP
-
-Qn3_NtSetContextThread PROC
-    push rbx
-    push rcx
-    push rdx
-    push r8
-    push r9
-    sub  rsp, 20h
-    mov  ecx, 0953ECF80h
-    call Qn3_PickSyscallStub
-    mov  rbx, rax
-    mov  ecx, 0953ECF80h
-    call Qn3_ResolveSyscallId
-    mov  r11, rbx
-    add  rsp, 20h
-    pop  r9
-    pop  r8
-    pop  rdx
-    pop  rcx
-    pop  rbx
-    mov  r10, rcx
-    jmp  r11
-Qn3_NtSetContextThread ENDP
+Qn3_NtAlertThread ENDP
 
 Qn3_NtClose PROC
     push rbx
