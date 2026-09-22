@@ -125,10 +125,10 @@ Qn3_NtQueueApcThread PROC
     push r8
     push r9
     sub  rsp, 20h
-    mov  ecx, 0BCAE3B8Dh
+    mov  ecx, 036A26C1Bh        ; ← corrigé
     call Qn3_PickSyscallStub
     mov  rbx, rax
-    mov  ecx, 0BCAE3B8Dh
+    mov  ecx, 036A26C1Bh        ; ← corrigé
     call Qn3_ResolveSyscallId
     mov  r11, rbx
     add  rsp, 20h
